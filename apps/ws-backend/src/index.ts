@@ -55,7 +55,7 @@ wss.on("connection", (ws: WebSocket, request) => {
             type: "user-left",
             userId,
             timestamp: new Date().toISOString()
-          }));
+          }), userId);
         }
 
         // Join new room
@@ -68,7 +68,7 @@ wss.on("connection", (ws: WebSocket, request) => {
           userId,
           users: roomManager.getUsersInRoom(roomId),
           timestamp: new Date().toISOString()
-        }));
+        }), userId);
 
       } else if (action === "message" && currentRoomId) {
 
@@ -86,7 +86,7 @@ wss.on("connection", (ws: WebSocket, request) => {
           userId,
           content,
           timestamp: new Date().toISOString()
-        }));
+        }), userId);
       }
     } catch (error) {
       console.error("Error processing message:", error);

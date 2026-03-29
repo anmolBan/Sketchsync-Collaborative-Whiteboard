@@ -122,6 +122,67 @@ router.post('/create-room', authMiddleware, async (req: Request, res: Response) 
   }
 });
 
+router.get('/room/:slug', async (req: Request, res: Response) => {
+    const slug = req.params.slug;
+
+    if(!slug || typeof slug !== "string"){
+        return res.status(400).json({message: "Invalid room slug."});
+    }
+    try{
+        const room = await prisma.room.findUnique({
+            where: {
+                slug
+            }
+        });
+
+        if(!room){
+            return res.status(404).json({message: "Room not found."});
+        }
+        return res.status(200).json({
+            message: "Room found.",
+            roomId: room.id
+        });
+    } catch(error){
+        return res.status(500).json({
+            message: "An error occurred while fetching the room.",
+            error: error instanceof Error ? error.message : "Unknown error"
+        });
+    }
+});
+
+router.get('/chats/:roomId', async (req: Request, res: Response) => {
+    const roomId = req.params.roomId;
+
+    if(!roomId || typeof roomId !== 'string'){
+        return res.status(400).json({message: "Invalid room ID."});
+    }
+
+    try{
+        const chats = await prisma.chat.findMany({
+            where: {
+                roomId
+            },
+            orderBy: {
+                createdAt: 'desc'
+            },
+            take: 50
+        });
+        return res.status(200).json({
+            message: "Chats fetched successfully.",
+            chats: chats.map(chat => ({
+                userId: chat.userId,
+                message: chat.message,
+                timestamp: chat.createdAt
+            }))
+        });
+    } catch(error){
+        return res.status(500).json({
+            message: "An error occurred while fetching the chats.",
+            error: error instanceof Error ? error.message : "Unknown error"
+        });
+    }
+});
+
 // router.post('/join-room', authMiddleware, async (req: Request, res: Response) => {
 //   const body = req.body;
 
