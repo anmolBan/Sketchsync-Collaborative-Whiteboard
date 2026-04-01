@@ -3,7 +3,8 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend_common";
 import { RoomManager } from "./RoomManager.js";
 import { WS_PORT } from "@repo/backend_common";
-import prisma from "@repo/db";
+import { chatQueue } from "./queue.js";
+import "./worker.js";
 
 const wss = new WebSocketServer({ port: WS_PORT });
 const roomManager = RoomManager.getInstance();
@@ -75,12 +76,10 @@ wss.on("connection", (ws: WebSocket, request) => {
 
       } else if (action === "message" && currentRoomId) {
 
-        await prisma.chat.create({
-          data: {
-            roomId,
-            userId,
-            message: content
-          }
+        await chatQueue.add("chat-message", {
+          roomId,
+          userId,
+          message: content,
         });
 
         // Broadcast message to room

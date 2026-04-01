@@ -13,5 +13,9 @@ export const WS_PORT = process.env.WS_PORT ? parseInt(process.env.WS_PORT) : 808
 export const HTTP_PORT = process.env.HTTP_PORT ? parseInt(process.env.HTTP_PORT) : 3002;
 export const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${HTTP_PORT}`;
 export const WS_URL = process.env.WS_URL || `ws://localhost:${WS_PORT}`;
+export const REDIS_HOST = process.env.REDIS_HOST || "localhost";
+export const REDIS_PORT = process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379;
+export const REDIS_PASSWORD = process.env.REDIS_PASSWORD || "";
+export const REDIS_TLS = process.env.REDIS_TLS === "true";
 
 // Type definitions
