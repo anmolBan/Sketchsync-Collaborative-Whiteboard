@@ -4,7 +4,11 @@ import { ChatRoom } from "../../../components/ChatRoom";
 
 async function getRoomId(slug: string): Promise<string | null> {
     try{
-        const response = await axios.get(`${BACKEND_URL}/api/users/room/${slug}`);
+        const response = await axios.get(`${BACKEND_URL}/api/users/room/${slug}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+        });
         if(response.status === 200){
             return response.data.roomId;
         } else {

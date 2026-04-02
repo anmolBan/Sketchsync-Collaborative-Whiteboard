@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSocket } from "../hooks/useSocket";
+import { useRouter } from "next/navigation";
 
 export function ChatRoomClient({chats, roomId, slug} : {
     chats: { message: string, name: string, userId: string, timestamp: string }[],
@@ -13,21 +14,37 @@ export function ChatRoomClient({chats, roomId, slug} : {
     const [messageInput, setMessageInput] = useState("");
     const [userId, setUserId] = useState<string>("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
-
-    // Auto-scroll to bottom on new messages
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+    const [loadingState, setLoadingState] = useState(true);
+    const [loggedIn, setLoggedIn] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         try {
             const token = localStorage.getItem("token");
             if (token) {
                 const decoded = JSON.parse(atob(token.split('.')[1]!));
-                setUserId(decoded.userId || "");
+                if(!decoded || !decoded.exp || Date.now() >= decoded.exp * 1000){
+                    setLoggedIn(false);
+                } else {
+                    setUserId(decoded.userId);
+                    setLoggedIn(true);
+                }
             }
-        } catch {}
+            else {
+                setLoggedIn(false);
+            }
+        } catch (error) {
+            setLoggedIn(false);
+        } finally {
+            setLoadingState(false);
+        }
     }, []);
+
+    // Auto-scroll to bottom on new messages
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
 
     useEffect(() => {
         if(socket && !loading){
@@ -89,6 +106,16 @@ export function ChatRoomClient({chats, roomId, slug} : {
         for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
         return colors[Math.abs(hash) % colors.length];
     };
+
+    useEffect(() => {
+        if(!loadingState && !loggedIn){
+            router.push("/signin");
+        }
+    }, [loadingState, loggedIn, router]);
+
+    if(loadingState || !loggedIn){
+        return null;
+    }
 
     return (
         <div className="flex flex-col h-screen bg-gradient-to-br from-[#0f0f1a] via-[#1a1a2e] to-[#16213e]">

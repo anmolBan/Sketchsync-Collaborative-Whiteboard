@@ -4,7 +4,11 @@ import { ChatRoomClient } from "./ChatRoomClient";
 
 async function getChats(roomId: string): Promise<{userId: string, name: string, message: string, timestamp: string}[]> {
     try{
-        const response = await axios.get(`${BACKEND_URL}/api/users/chats/${roomId}`);
+        const response = await axios.get(`${BACKEND_URL}/api/users/chats/${roomId}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+        });
         if(response.status === 200){
             return response.data.chats;
         } else {

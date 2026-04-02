@@ -27,6 +27,7 @@ const chatWorker = new Worker<ChatJobData>(
       maxRetriesPerRequest: null,
     },
     concurrency: 10,
+    drainDelay: 60, // Wait 60s between polls when idle (reduces Upstash command usage)
   }
 );
 

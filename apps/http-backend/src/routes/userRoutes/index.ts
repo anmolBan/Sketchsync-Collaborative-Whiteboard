@@ -122,7 +122,7 @@ router.post('/create-room', authMiddleware, async (req: Request, res: Response) 
   }
 });
 
-router.get('/room/:slug', async (req: Request, res: Response) => {
+router.get('/room/:slug', authMiddleware, async (req: Request, res: Response) => {
     const slug = req.params.slug;
 
     if(!slug || typeof slug !== "string"){
@@ -150,7 +150,7 @@ router.get('/room/:slug', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/chats/:roomId', async (req: Request, res: Response) => {
+router.get('/chats/:roomId', authMiddleware, async (req: Request, res: Response) => {
     const roomId = req.params.roomId;
 
     if(!roomId || typeof roomId !== 'string'){
