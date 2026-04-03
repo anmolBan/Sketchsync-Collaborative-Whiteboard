@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import axios from "axios";
-import { BACKEND_URL } from "../../../config";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -20,12 +19,13 @@ export default function SigninPage() {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${BACKEND_URL}/api/users/signin`, {
+      const response = await axios.post(`/api/auth/signin`, {
         email,
         password,
       });
-      const { token } = res.data;
-      localStorage.setItem("token", token);
+
+      localStorage.setItem("token", response.data.token);
+
       router.push("/");
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.data?.message) {

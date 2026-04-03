@@ -15,6 +15,13 @@ export const UserSigninSchema = z.object({
 
 export type UserSigninInput = z.infer<typeof UserSigninSchema>;
 
+export const UserOAuthSigninSchema = z.object({
+  name: z.string(),
+  email: z.string().email()
+});
+
+export type UserOAuthSigninInput = z.infer<typeof UserOAuthSigninSchema>;
+
 export const CreateRoomSchema = z.object({
   name: z.string()
 });

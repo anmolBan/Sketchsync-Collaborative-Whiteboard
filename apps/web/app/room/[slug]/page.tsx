@@ -1,12 +1,15 @@
 import axios from "axios";
 import { BACKEND_URL } from "../../../config";
 import { ChatRoom } from "../../../components/ChatRoom";
+import { cookies } from "next/headers";
 
 async function getRoomId(slug: string): Promise<string | null> {
     try{
+        const cookieStore = await cookies();
+        const token = cookieStore.get("token")?.value;
         const response = await axios.get(`${BACKEND_URL}/api/users/room/${slug}`, {
             headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`
+                Authorization: `Bearer ${token}`
             }
         });
         if(response.status === 200){

@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import { CreateRoomSchema, UserSigninSchema, UserSignupSchema } from "@repo/types";
+import { CreateRoomSchema, UserOAuthSigninSchema, UserSigninSchema, UserSignupSchema } from "@repo/types";
 import  prisma from "@repo/db";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend_common";
@@ -77,6 +77,45 @@ router.post('/signin', async (req: Request, res: Response) => {
   } catch (error: unknown) {
     res.status(500).json({
       message: "An error occurred while signing in the user.",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+router.post('/oauth-signin', async (req: Request, res: Response) => {
+  const { name, email } = req.body;
+  const parsedBody = UserOAuthSigninSchema.safeParse({ name, email });
+
+  if (!parsedBody.success) {
+    return res.status(400).json({ 
+      message: "Invalid input data for OAuth signin.",
+      error: parsedBody.error.message });
+  }
+
+  try{
+    let user = await prisma.user.findUnique({
+      where: {
+        email
+      }
+    });
+
+    if(!user){
+      user = await prisma.user.create({
+        data: {
+          name,
+          email,
+          password: "" // No password for OAuth users
+        }
+      });
+    }
+    
+    const token = jwt.sign({userId: user.id, email: user.email, name: user.name}, JWT_SECRET, { expiresIn: '24h' });
+
+    res.status(200).json({ message: "User signed in successfully.", token });
+    return;
+  } catch(error: unknown){
+    res.status(500).json({
+      message: "An error occurred during OAuth signin.",
       error: error instanceof Error ? error.message : "Unknown error"
     });
   }
