@@ -92,6 +92,28 @@ wss.on("connection", (ws: WebSocket, request) => {
           timestamp: new Date().toISOString()
         }), userId);
       }
+
+      else if (action === "canvas-update" && currentRoomId) {
+
+        await prisma?.room.update({
+          where: { id: currentRoomId },
+          data: {
+            canvasData: content
+          }
+        });
+
+        // Broadcast canvas update to room
+        roomManager.broadcast(currentRoomId, JSON.stringify({
+          type: "canvas-update",
+          roomId: currentRoomId,
+          userId,
+          name,
+          content,
+          timestamp: new Date().toISOString()
+        }), userId);
+      }
+
+
     } catch (error) {
       console.error("Error processing message:", error);
     }

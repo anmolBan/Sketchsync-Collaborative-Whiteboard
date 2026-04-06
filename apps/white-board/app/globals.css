@@ -98,3 +98,123 @@ body {
     linear-gradient(90deg, rgba(99,102,241,0.07) 1px, transparent 1px);
   background-size: 48px 48px;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Excalidraw – theme overrides to match SketchSync landing page
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Wrapper must expose the height to Excalidraw */
+.excalidraw-canvas-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.excalidraw-canvas-wrapper .excalidraw-container,
+.excalidraw-canvas-wrapper .excalidraw {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ── Core colour tokens ── */
+.excalidraw.theme--dark {
+  --default-bg-color: #0a0a18 !important;
+  --island-bg-color: rgba(17, 17, 36, 0.92) !important;
+
+  --color-primary: #7c3aed !important;
+  --color-primary-darker: #6d28d9 !important;
+  --color-primary-darkest: #5b21b6 !important;
+  --color-primary-light: #a78bfa !important;
+
+  --text-primary-color: #e2e8f0 !important;
+
+  --color-surface-high: rgba(17, 17, 36, 0.95) !important;
+  --color-surface-mid: rgba(12, 12, 29, 0.90) !important;
+  --color-surface-low: rgba(8, 8, 21, 0.85) !important;
+
+  --color-on-surface: #e2e8f0 !important;
+
+  --sidebar-bg-color: rgba(12, 12, 29, 0.96) !important;
+  --sidebar-border-color: rgba(255, 255, 255, 0.06) !important;
+
+  --input-bg-color: rgba(255, 255, 255, 0.04) !important;
+  --input-border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ── Toolbar islands – glass effect ── */
+.excalidraw.theme--dark .Island {
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset !important;
+  border-radius: 14px !important;
+}
+
+/* ── Active tool icon – purple gradient highlight ── */
+.excalidraw.theme--dark .ToolIcon__icon--selected {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.35) !important;
+}
+.excalidraw.theme--dark .ToolIcon__icon:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* ── Button accents ── */
+.excalidraw.theme--dark button.active,
+.excalidraw.theme--dark button[aria-checked="true"] {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+}
+
+/* ── Scrollbars ── */
+.excalidraw.theme--dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.excalidraw.theme--dark ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.excalidraw.theme--dark ::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.25);
+  border-radius: 99px;
+}
+.excalidraw.theme--dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.4);
+}
+
+/* ── Welcome screen tweaks (shown on empty canvas) ── */
+.excalidraw.theme--dark .virgil {
+  color: #c4b5fd !important;
+}
+
+/* ── Menu/dialog overlays ── */
+.excalidraw.theme--dark .Dialog__content,
+.excalidraw.theme--dark .popover {
+  background: rgba(12, 12, 29, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(24px) !important;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 16px !important;
+}
+
+/* ── Tooltip ── */
+.excalidraw-tooltip {
+  background: rgba(12, 12, 29, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #e2e8f0 !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Canvas loading-bar animation
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes loading-bar {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+.loading-bar {
+  width: 100%;
+  animation: loading-bar 1.6s ease-in-out infinite;
+}

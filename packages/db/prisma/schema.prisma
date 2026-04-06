@@ -24,12 +24,13 @@ model User {
 }
 
 model Room{
-  id        String   @id @default(uuid())
-  slug      String  @unique
-  adminId   String
-  admin     User    @relation(fields: [adminId], references: [id])
-  createdAt DateTime @default(now())
-  chats     Chat[]
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  adminId     String
+  admin       User      @relation(fields: [adminId], references: [id])
+  createdAt   DateTime  @default(now())
+  chats       Chat[]
+  canvasData  Json?
 }
 
 model Chat{

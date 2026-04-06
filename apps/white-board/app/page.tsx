@@ -1,10 +1,12 @@
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import ProfileDropdown from "@/components/ProfileDropdown";
+import { authOptions } from "@/lib/authOptions";
 
 export default async function Home() {
 
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
+  console.log(session);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#080815] text-white">

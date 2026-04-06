@@ -230,4 +230,75 @@ router.get('/chats/:roomId', authMiddleware, async (req: Request, res: Response)
     }
 });
 
+router.get('/canvasData/:roomId', authMiddleware, async (req: Request, res: Response) => {
+  const roomId = req.params.roomId;
+
+  if(!roomId || typeof roomId !== 'string'){
+      return res.status(400).json({message: "Invalid room ID."});
+  }
+
+  try{
+      const room = await prisma.room.findUnique({
+          where: {
+              id: roomId
+          },
+          select: {
+              canvasData: true
+          }
+      });
+
+      if(!room){
+          return res.status(404).json({message: "Room not found."});
+      }
+
+      return res.status(200).json({
+          message: "Canvas data fetched successfully.",
+          canvasData: room.canvasData
+      });
+  } catch(error){
+      return res.status(500).json({
+          message: "An error occurred while fetching the canvas data.",
+          error: error instanceof Error ? error.message : "Unknown error"
+      });
+  }
+});
+
+router.put('/canvasData/:roomId', async (req: Request, res: Response) => {
+  const roomId = req.params.roomId;
+
+  if(!roomId || typeof roomId !== 'string'){
+      return res.status(400).json({message: "Invalid room ID."});
+  }
+
+  try{
+    const { canvasData } = req.body;
+    if(!canvasData){
+      console.log("Canvas data is missing in the request body.");
+      return res.status(400).json({message: "Canvas data is required."});
+    }
+
+    const room = await prisma.room.update({
+      where: {
+        id: roomId
+      },
+      data: {
+        canvasData
+      }
+    });
+
+    if(!room){
+      return res.status(404).json({message: "Room not found"});
+    }
+
+    return res.status(200).json({
+      message: "Canvas data updated successfully."
+    });
+  } catch(error){
+      return res.status(500).json({
+          message: "An error occurred while updating the canvas data.",
+          error: error instanceof Error ? error.message : "Unknown error"
+      });
+  }
+})
+
 export default router;
