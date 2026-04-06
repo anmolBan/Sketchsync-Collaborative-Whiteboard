@@ -1,22 +1,36 @@
 import { Worker, Job } from "bullmq";
 import { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, REDIS_TLS } from "@repo/backend_common";
 import prisma from "@repo/db";
-import { ChatJobData, CHAT_QUEUE_NAME } from "./queue.js";
+import { CanvasUpdateJobData, ChatJobData, QUEUE_NAME } from "./queue.js";
 
-const chatWorker = new Worker<ChatJobData>(
-  CHAT_QUEUE_NAME,
-  async (job: Job<ChatJobData>) => {
-    const { roomId, userId, message } = job.data;
+const chatWorker = new Worker<ChatJobData | CanvasUpdateJobData>(
+  QUEUE_NAME,
+  async (job: Job<ChatJobData | CanvasUpdateJobData>) => {
+    if(job.data && "message" in job.data){
+      const { roomId, userId, message } = job.data
+      await prisma.chat.create({
+        data: {
+          roomId,
+          userId,
+          message,
+        },
+      });
 
-    await prisma.chat.create({
-      data: {
-        roomId,
-        userId,
-        message,
-      },
-    });
-
-    console.log(`[Worker] Saved chat message from user ${userId} in room ${roomId}`);
+      console.log(`[Worker] Saved chat message from user ${userId} in room ${roomId}`);
+    } else if(job.data && "elements" in job.data){
+      const { roomId, userId, elements, appState, files } = job.data
+      await prisma.room.update({
+        where: { id: roomId },
+        data: {
+          canvasData: {
+            elements,
+            appState,
+            files
+          }
+        }
+      });
+      console.log(`[Worker] Saved canvas update from user ${userId} in room ${roomId}`);
+    }
   },
   {
     connection: {

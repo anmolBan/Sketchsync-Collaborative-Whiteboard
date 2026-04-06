@@ -7,9 +7,17 @@ export interface ChatJobData {
   message: string;
 }
 
-export const CHAT_QUEUE_NAME = "chat-messages";
+export interface CanvasUpdateJobData {
+  roomId: string;
+  userId: string;
+  elements: any;
+  appState: any;
+  files: any;
+}
 
-export const chatQueue = new Queue<ChatJobData>(CHAT_QUEUE_NAME, {
+export const QUEUE_NAME = "chat-messages-and-canvas-updates";
+
+export const queue = new Queue<ChatJobData | CanvasUpdateJobData>(QUEUE_NAME, {
   connection: {
     host: REDIS_HOST,
     port: REDIS_PORT,

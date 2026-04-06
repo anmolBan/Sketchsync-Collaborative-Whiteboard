@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend_common";
 import { RoomManager } from "./RoomManager.js";
 import { WS_PORT } from "@repo/backend_common";
-import { chatQueue } from "./queue.js";
+import { queue } from "./queue.js";
 import "./worker.js";
 
 const wss = new WebSocketServer({ port: WS_PORT });
@@ -76,7 +76,7 @@ wss.on("connection", (ws: WebSocket, request) => {
 
       } else if (action === "message" && currentRoomId) {
 
-        await chatQueue.add("chat-message", {
+        await queue.add("chat-message-and-canvas-update", {
           roomId,
           userId,
           message: content,
@@ -95,11 +95,12 @@ wss.on("connection", (ws: WebSocket, request) => {
 
       else if (action === "canvas-update" && currentRoomId) {
 
-        await prisma?.room.update({
-          where: { id: currentRoomId },
-          data: {
-            canvasData: content
-          }
+        await queue.add("chat-message-and-canvas-update", {
+          roomId,
+          userId,
+          elements: content.elements,
+          appState: content.appState,
+          files: content.files
         });
 
         // Broadcast canvas update to room

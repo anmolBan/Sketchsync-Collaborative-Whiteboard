@@ -25,13 +25,14 @@
 
 "use client";
 
-import { use, useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 
 // CRITICAL - loads Excalidraw's own CSS so icons/toolbar render at correct size
 import "@excalidraw/excalidraw/index.css";
 import axios from "axios";
+import { useSocket } from "@/hooks/useSocket";
 
 /*
  * --- THEMED LOADING SPINNER ---
@@ -95,16 +96,19 @@ const Excalidraw = dynamic(
  * --- STYLED CANVAS PAGE ---
  * Includes: header bar, logo, room name, save indicator,
  * collaborator avatars, share button, and ambient glow effects.
- */
+*/
 export default function CanvasComponent({roomId, roomName, canvasData}: { roomId: string, roomName: string, canvasData: any}) {
   // Next.js 15+ passes params as a Promise - unwrap with use()
+  const savedElements = canvasData?.canvasData?.elements ?? null;
+
   const [saved, setSaved] = useState(true);
   const [mounted, setMounted] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevCursorButton = useRef<string>("up");
+  const {socket, loading} = useSocket();
+  const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
 
   // Extract saved elements from the API response — null if nothing saved yet
-  const savedElements = canvasData?.canvasData?.elements ?? null;
 
   useEffect(() => {
     setMounted(true);
@@ -113,26 +117,39 @@ export default function CanvasComponent({roomId, roomName, canvasData}: { roomId
     };
   }, []);
 
-  // Simulate auto-save feedback on every change
-//   const handleChange = useCallback(() => {
-//     setSaved(false);
-//     if (saveTimer.current) clearTimeout(saveTimer.current);
-//     saveTimer.current = setTimeout(() => setSaved(true), 1200);
-//   }, []);
+  useEffect(() => {
+    if(socket && !loading){
+      socket.send(JSON.stringify({
+        action: "join",
+        roomId
+      }));
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if(data.type === "canvas-update" && data.roomId === roomId){
+          // Use the imperative API to merge remote elements into the canvas
+          excalidrawAPI?.updateScene({ elements: data.content.elements });
+        }
+      }
+    }
+  }, [socket, loading, roomId, excalidrawAPI]);
 
   function handleChange(elements: any, appState: any, files: any) {
     const cursorButton = appState.cursorButton ?? "up";
     // Log only when the pointer is released (action finished)
     if (prevCursorButton.current === "down" && cursorButton === "up") {
       setSaved(false);
-      axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/canvasData/${roomId}`, {
-        canvasData: { elements, appState, files }
-      }).then(() => {
-        console.log("Canvas data saved successfully.");
-        setSaved(true);
-      }).catch((error) => {
-        console.error("Error saving canvas data:", error);
-      });
+      if(socket && !loading){
+        socket.send(JSON.stringify({
+          action: "canvas-update",
+          roomId,
+          content: { elements, appState, files }   // send complete canvas state
+        }));
+        setTimeout(() => {
+          setSaved(true)
+        }, 800);
+        // setSaved(true); // Optimistically set to saved; will be corrected if server update fails or if another user's update comes in
+      }
     }
     prevCursorButton.current = cursorButton;
   }
@@ -287,6 +304,7 @@ export default function CanvasComponent({roomId, roomName, canvasData}: { roomId
         {mounted && (
           <Excalidraw
             theme="dark"
+            excalidrawAPI={(api) => setExcalidrawAPI(api)}
             initialData={savedElements ? { elements: savedElements } : null}
             onChange={handleChange}
             UIOptions={{
