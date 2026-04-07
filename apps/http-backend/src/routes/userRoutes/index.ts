@@ -263,42 +263,44 @@ router.get('/canvasData/:roomId', authMiddleware, async (req: Request, res: Resp
   }
 });
 
-router.put('/canvasData/:roomId', async (req: Request, res: Response) => {
-  const roomId = req.params.roomId;
+// not used anymore, but keeping it here for reference. We are now using WebSockets to update canvas data in real-time, so we don't need this REST endpoint to update canvas data.
 
-  if(!roomId || typeof roomId !== 'string'){
-      return res.status(400).json({message: "Invalid room ID."});
-  }
+// router.put('/canvasData/:roomId', async (req: Request, res: Response) => {
+//   const roomId = req.params.roomId;
 
-  try{
-    const { canvasData } = req.body;
-    if(!canvasData){
-      console.log("Canvas data is missing in the request body.");
-      return res.status(400).json({message: "Canvas data is required."});
-    }
+//   if(!roomId || typeof roomId !== 'string'){
+//       return res.status(400).json({message: "Invalid room ID."});
+//   }
 
-    const room = await prisma.room.update({
-      where: {
-        id: roomId
-      },
-      data: {
-        canvasData
-      }
-    });
+//   try{
+//     const { canvasData } = req.body;
+//     if(!canvasData){
+//       console.log("Canvas data is missing in the request body.");
+//       return res.status(400).json({message: "Canvas data is required."});
+//     }
 
-    if(!room){
-      return res.status(404).json({message: "Room not found"});
-    }
+//     const room = await prisma.room.update({
+//       where: {
+//         id: roomId
+//       },
+//       data: {
+//         canvasData
+//       }
+//     });
 
-    return res.status(200).json({
-      message: "Canvas data updated successfully."
-    });
-  } catch(error){
-      return res.status(500).json({
-          message: "An error occurred while updating the canvas data.",
-          error: error instanceof Error ? error.message : "Unknown error"
-      });
-  }
-})
+//     if(!room){
+//       return res.status(404).json({message: "Room not found"});
+//     }
+
+//     return res.status(200).json({
+//       message: "Canvas data updated successfully."
+//     });
+//   } catch(error){
+//       return res.status(500).json({
+//           message: "An error occurred while updating the canvas data.",
+//           error: error instanceof Error ? error.message : "Unknown error"
+//       });
+//   }
+// })
 
 export default router;

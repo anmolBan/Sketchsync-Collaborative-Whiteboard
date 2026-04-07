@@ -53,7 +53,7 @@ export default async function Home() {
                 className="hidden rounded-lg px-4 py-2 text-sm text-gray-300 transition-colors hover:text-white md:block">
                 Sign in
               </Link>
-              <Link href="/signup"
+              <Link href={"/signup"}
                 className="rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/40 hover:scale-105">
                 Get Started Free
               </Link>
@@ -85,7 +85,7 @@ export default async function Home() {
 
         {/* CTA row */}
         <div className="animate-fade-up-delay-3 mt-10 flex flex-col items-center gap-4 sm:flex-row">
-          <Link href="/signup"
+          <Link href={session?.user ? "/createroom" : "/signup"}
             className="group flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 text-base font-semibold text-white shadow-xl shadow-purple-500/30 transition-all hover:shadow-purple-500/50 hover:scale-105">
             Start drawing for free
             <svg className="transition-transform group-hover:translate-x-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
