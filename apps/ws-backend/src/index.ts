@@ -52,27 +52,32 @@ wss.on("connection", (ws: WebSocket, request) => {
       if (action === "join") {
         // Leave previous room if user was in one
         if (currentRoomId) {
-          roomManager.leaveRoom(currentRoomId, userId);
-          roomManager.broadcast(currentRoomId, JSON.stringify({
-            type: "user-left",
-            userId,
-            name,
-            timestamp: new Date().toISOString()
-          }), userId);
+          const removed = roomManager.leaveRoom(currentRoomId, userId, ws);
+          if (removed) {
+            roomManager.broadcast(currentRoomId, JSON.stringify({
+              type: "user-left",
+              userId,
+              name,
+              users: roomManager.getUsersInRoom(currentRoomId),
+              timestamp: new Date().toISOString()
+            }));
+          }
         }
 
         // Join new room
         currentRoomId = roomId;
-        roomManager.joinRoom(roomId, userId, ws);
+        const isNewUser = roomManager.joinRoom(roomId, userId, ws);
         
-        // Notify others in the room
-        roomManager.broadcast(roomId, JSON.stringify({
-          type: "user-joined",
-          userId,
-          name,
-          users: roomManager.getUsersInRoom(roomId),
-          timestamp: new Date().toISOString()
-        }), userId);
+        // Only notify others if this is a genuinely new user, not a reconnect
+        if (isNewUser) {
+          roomManager.broadcast(roomId, JSON.stringify({
+            type: "user-joined",
+            userId,
+            name,
+            users: roomManager.getUsersInRoom(roomId),
+            timestamp: new Date().toISOString()
+          }));
+        }
 
       } else if (action === "message" && currentRoomId) {
 
@@ -103,6 +108,8 @@ wss.on("connection", (ws: WebSocket, request) => {
           files: content.files
         });
 
+        // const roomMembers = roomManager.getUsersInRoom(currentRoomId);
+
         // Broadcast canvas update to room
         roomManager.broadcast(currentRoomId, JSON.stringify({
           type: "canvas-update",
@@ -110,8 +117,9 @@ wss.on("connection", (ws: WebSocket, request) => {
           userId,
           name,
           content,
+          users: roomManager.getUsersInRoom(currentRoomId),
           timestamp: new Date().toISOString()
-        }), userId);
+        }));
       }
 
 
@@ -122,15 +130,17 @@ wss.on("connection", (ws: WebSocket, request) => {
 
   ws.on("close", () => {
     if (currentRoomId) {
-      console.log(`Client ${userId} disconnected from room ${currentRoomId}`);
-      roomManager.leaveRoom(currentRoomId, userId);
-      roomManager.broadcast(currentRoomId, JSON.stringify({
-        type: "user-left",
-        userId,
-        name,
-        users: roomManager.getUsersInRoom(currentRoomId),
-        timestamp: new Date().toISOString()
-      }));
+      const removed = roomManager.leaveRoom(currentRoomId, userId, ws);
+      if (removed) {
+        console.log(`Client ${userId} disconnected from room ${currentRoomId}`);
+        roomManager.broadcast(currentRoomId, JSON.stringify({
+          type: "user-left",
+          userId,
+          name,
+          users: roomManager.getUsersInRoom(currentRoomId),
+          timestamp: new Date().toISOString()
+        }));
+      }
     }
   });
 

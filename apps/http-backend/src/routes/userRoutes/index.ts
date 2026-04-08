@@ -163,29 +163,28 @@ router.post('/create-room', authMiddleware, async (req: Request, res: Response) 
 
 router.get('/room/:slug', authMiddleware, async (req: Request, res: Response) => {
     const slug = req.params.slug;
-
+    
     if(!slug || typeof slug !== "string"){
-        return res.status(400).json({message: "Invalid room slug."});
+      return res.status(400).json({message: "Invalid room slug."});
     }
     try{
-        const room = await prisma.room.findUnique({
-            where: {
-                slug
-            }
-        });
-
-        if(!room){
-            return res.status(404).json({message: "Room not found."});
+      const room = await prisma.room.findUnique({
+        where: {
+          slug
         }
-        return res.status(200).json({
-            message: "Room found.",
-            roomId: room.id
-        });
-    } catch(error){
-        return res.status(500).json({
-            message: "An error occurred while fetching the room.",
-            error: error instanceof Error ? error.message : "Unknown error"
-        });
+      });
+      if(!room){
+        return res.status(404).json({message: "Room not found."});
+      }
+      return res.status(200).json({
+        message: "Room found.",
+        roomId: room.id
+      });
+    }catch(error){
+      return res.status(500).json({
+          message: "An error occurred while fetching the room.",
+          error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
 });
 

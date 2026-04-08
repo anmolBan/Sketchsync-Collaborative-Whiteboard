@@ -107,6 +107,7 @@ export default function CanvasComponent({roomId, roomName, canvasData}: { roomId
   const prevCursorButton = useRef<string>("up");
   const {socket, loading} = useSocket();
   const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
+  const [roomMembers, setRoomMembers] = useState<string[]>([]);
 
   // Extract saved elements from the API response — null if nothing saved yet
 
@@ -117,21 +118,37 @@ export default function CanvasComponent({roomId, roomName, canvasData}: { roomId
     };
   }, []);
 
+  // Join the room — only depends on socket & roomId, NOT excalidrawAPI
   useEffect(() => {
     if(socket && !loading){
       socket.send(JSON.stringify({
         action: "join",
         roomId
       }));
-
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if(data.type === "canvas-update" && data.roomId === roomId){
-          // Use the imperative API to merge remote elements into the canvas
-          excalidrawAPI?.updateScene({ elements: data.content.elements });
-        }
-      }
     }
+  }, [socket, loading, roomId]);
+
+  // Handle incoming messages — separate effect so excalidrawAPI changes don't re-send join
+  useEffect(() => {
+    if(!socket || loading) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      // console.log("Received WebSocket message:", event.data);
+      const data = JSON.parse(event.data);
+      console.log(data.users);
+      if(data.type === "user-joined" || data.type === "user-left"){
+        setRoomMembers(data.users);
+      }
+      // }
+      if(data.type === "canvas-update" && data.roomId === roomId){
+        excalidrawAPI?.updateScene({ elements: data.content.elements });
+      }
+    };
+
+    socket.addEventListener("message", handleMessage);
+    return () => {
+      socket.removeEventListener("message", handleMessage);
+    };
   }, [socket, loading, roomId, excalidrawAPI]);
 
   function handleChange(elements: any, appState: any, files: any) {
@@ -272,7 +289,7 @@ export default function CanvasComponent({roomId, roomName, canvasData}: { roomId
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
               </span>
-              <span className="text-[11px] text-gray-500">3 online</span>
+              <span className="text-[11px] text-gray-500">{roomMembers.length} online</span>
             </div>
           </div>
           <div className="hidden h-4 w-px bg-white/10 sm:block" />
