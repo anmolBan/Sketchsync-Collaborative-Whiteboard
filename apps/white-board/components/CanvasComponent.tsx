@@ -107,7 +107,7 @@ export default function CanvasComponent({roomId, roomName, canvasData}: { roomId
   const prevCursorButton = useRef<string>("up");
   const {socket, loading} = useSocket();
   const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
-  const [roomMembers, setRoomMembers] = useState<string[]>([]);
+  const [roomMembers, setRoomMembers] = useState<{userId: string, name: string}[]>([]);
 
   // Extract saved elements from the API response — null if nothing saved yet
 
@@ -135,9 +135,10 @@ export default function CanvasComponent({roomId, roomName, canvasData}: { roomId
     const handleMessage = (event: MessageEvent) => {
       // console.log("Received WebSocket message:", event.data);
       const data = JSON.parse(event.data);
-      console.log(data.users);
+      console.log(data);
       if(data.type === "user-joined" || data.type === "user-left"){
         setRoomMembers(data.users);
+        // setRoomMembers(data.users);
       }
       // }
       if(data.type === "canvas-update" && data.roomId === roomId){
@@ -277,7 +278,7 @@ export default function CanvasComponent({roomId, roomName, canvasData}: { roomId
                   marginLeft: i > 0 ? -6 : 0,
                 }}
               >
-                {u.charAt(0).toUpperCase()}
+                {u.name.charAt(0).toUpperCase()}
               </div>
             ))}
             <div className="ml-2 flex items-center gap-1.5">

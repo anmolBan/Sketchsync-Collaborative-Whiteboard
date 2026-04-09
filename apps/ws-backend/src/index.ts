@@ -37,7 +37,7 @@ wss.on("connection", (ws: WebSocket, request) => {
   const token = queryParams.get('token') || "";
   const [userId, name] = checkUser(token);
 
-  if(!userId){
+  if(!userId || !name){
     ws.close();
     return null;
   }
@@ -66,7 +66,7 @@ wss.on("connection", (ws: WebSocket, request) => {
 
         // Join new room
         currentRoomId = roomId;
-        const isNewUser = roomManager.joinRoom(roomId, userId, ws);
+        const isNewUser = roomManager.joinRoom(roomId, userId, name, ws);
         
         // Only notify others if this is a genuinely new user, not a reconnect
         if (isNewUser) {

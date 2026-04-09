@@ -2,7 +2,8 @@ import { WebSocket } from "ws";
 
 export class RoomManager {
   private static instance: RoomManager;
-  private rooms: Map<string, Map<string, WebSocket>> = new Map();
+  // Map should also contain user names also
+  private rooms: Map<string, Map<string, { ws: WebSocket, name: string }>> = new Map();
 
   private constructor() {}
 
@@ -13,20 +14,20 @@ export class RoomManager {
     return RoomManager.instance;
   }
 
-  public joinRoom(roomId: string, userId: string, ws: WebSocket): boolean {
+  public joinRoom(roomId: string, userId: string, name: string, ws: WebSocket): boolean {
     if (!this.rooms.has(roomId)) {
       this.rooms.set(roomId, new Map());
     }
     const room = this.rooms.get(roomId)!;
     const isNewUser = !room.has(userId);
-    room.set(userId, ws);
+    room.set(userId, { ws, name}); // Assuming name is same as userId for now
     return isNewUser; // true = first time joining, false = reconnecting
   }
 
   public leaveRoom(roomId: string, userId: string, ws: WebSocket): boolean {
     const room = this.rooms.get(roomId);
     if (room) {
-      const currentWs = room.get(userId);
+      const currentWs = room.get(userId)?.ws;
       // Only remove if this is the active socket for this user
       if (currentWs === ws) {
         room.delete(userId);
@@ -42,7 +43,7 @@ export class RoomManager {
   public broadcast(roomId: string, message: string, excludeUserId?: string): void {
     const room = this.rooms.get(roomId);
     if (room) {
-      room.forEach((ws, userId) => {
+      room.forEach(({ ws }, userId) => {
         if (!excludeUserId || userId !== excludeUserId) {
           ws.send(message);
         }
@@ -50,8 +51,11 @@ export class RoomManager {
     }
   }
 
-  public getUsersInRoom(roomId: string): string[] {
-    return Array.from(this.rooms.get(roomId)?.keys() || []);
+  public getUsersInRoom(roomId: string): { userId: string, name: string }[] | undefined {
+    const room = this.rooms.get(roomId);
+    if( room ){
+      return Array.from(room.entries()).map(([userId, { name }]) => ({ userId, name }));
+    }
   }
 
   public getRoomByUserId(userId: string): string | null {
