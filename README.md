@@ -63,7 +63,7 @@ turbo build --filter=docs
 Without global `turbo`:
 
 ```sh
-npx turbo build --filter=docs
+npx turbo build --filter=docs --
 yarn exec turbo build --filter=docs
 pnpm exec turbo build --filter=docs
 ```
