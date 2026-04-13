@@ -1,0 +1,14 @@
+.git
+.gitignore
+.turbo
+.env
+**/.env
+node_modules
+**/node_modules
+**/dist
+**/.next
+**/coverage
+**/*.log
+**/.env.local
+**/.env.*.local
+!apps/http-backend/.env.docker.example

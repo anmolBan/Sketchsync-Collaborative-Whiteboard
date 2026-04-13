@@ -3,11 +3,39 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend_common";
 import { RoomManager } from "./RoomManager.js";
 import { WS_PORT } from "@repo/backend_common";
-import { queue } from "./queue.js";
+import { queue, compressData, stripAppState, CanvasUpdateJobData } from "./queue.js";
 import "./worker.js";
 
 const wss = new WebSocketServer({ port: WS_PORT });
 const roomManager = RoomManager.getInstance();
+
+// ── Debounce canvas updates: only queue after 2s of inactivity per room ──
+const CANVAS_DEBOUNCE_MS = 2000;
+const pendingCanvasUpdates = new Map<string, {
+  timeout: NodeJS.Timeout;
+  data: CanvasUpdateJobData;
+}>();
+
+function scheduleCanvasUpdate(jobData: CanvasUpdateJobData) {
+  const { roomId } = jobData;
+
+  const existing = pendingCanvasUpdates.get(roomId);
+  if (existing) {
+    clearTimeout(existing.timeout);
+  }
+
+  const timeout = setTimeout(async () => {
+    pendingCanvasUpdates.delete(roomId);
+    try {
+      await queue.add("canvas-update", jobData);
+      console.log(`[Debounce] Queued canvas update for room ${roomId}`);
+    } catch (err) {
+      console.error(`[Debounce] Failed to queue canvas update:`, err);
+    }
+  }, CANVAS_DEBOUNCE_MS);
+
+  pendingCanvasUpdates.set(roomId, { timeout, data: jobData });
+}
 
 function checkUser(token: string) : [string | null, string | null] {
     try {
@@ -102,17 +130,22 @@ wss.on("connection", (ws: WebSocket, request) => {
 
       else if (action === "canvas-update" && currentRoomId) {
 
-        await queue.add("chat-message-and-canvas-update", {
-          roomId,
-          userId,
+        // Strip non-essential appState fields & compress before queuing
+        const strippedAppState = stripAppState(content.appState);
+        const compressedData = await compressData({
           elements: content.elements,
-          appState: content.appState,
-          files: content.files
+          appState: strippedAppState,
+          files: content.files,
         });
 
-        // const roomMembers = roomManager.getUsersInRoom(currentRoomId);
+        // Debounce: only queue the latest canvas state per room after 2s idle
+        scheduleCanvasUpdate({
+          roomId,
+          userId,
+          compressedData,
+        });
 
-        // Broadcast canvas update to room
+        // Broadcast canvas update to room (uncompressed, for real-time display)
         roomManager.broadcast(currentRoomId, JSON.stringify({
           type: "canvas-update",
           roomId: currentRoomId,
@@ -147,5 +180,16 @@ wss.on("connection", (ws: WebSocket, request) => {
   });
 
 });
+
+// ── One-time cleanup: purge old completed & failed jobs from Redis ──────
+(async () => {
+  try {
+    const completedRemoved = await queue.clean(0, 0, "completed");
+    const failedRemoved = await queue.clean(0, 0, "failed");
+    console.log(`[Cleanup] Removed ${completedRemoved.length} completed and ${failedRemoved.length} failed old jobs from Redis`);
+  } catch (err) {
+    console.error("[Cleanup] Failed to clean old jobs:", err);
+  }
+})();
 
 console.log(`WebSocket server is running on port ${WS_PORT}`);

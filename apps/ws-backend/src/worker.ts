@@ -1,7 +1,7 @@
 import { Worker, Job } from "bullmq";
 import { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, REDIS_TLS } from "@repo/backend_common";
 import prisma from "@repo/db";
-import { CanvasUpdateJobData, ChatJobData, QUEUE_NAME } from "./queue.js";
+import { CanvasUpdateJobData, ChatJobData, QUEUE_NAME, decompressData } from "./queue.js";
 
 const chatWorker = new Worker<ChatJobData | CanvasUpdateJobData>(
   QUEUE_NAME,
@@ -17,8 +17,9 @@ const chatWorker = new Worker<ChatJobData | CanvasUpdateJobData>(
       });
 
       console.log(`[Worker] Saved chat message from user ${userId} in room ${roomId}`);
-    } else if(job.data && "elements" in job.data){
-      const { roomId, userId, elements, appState, files } = job.data
+    } else if(job.data && "compressedData" in job.data){
+      const { roomId, userId, compressedData } = job.data;
+      const { elements, appState, files } = await decompressData(compressedData);
       await prisma.room.update({
         where: { id: roomId },
         data: {
