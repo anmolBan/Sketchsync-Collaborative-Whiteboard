@@ -5,7 +5,7 @@ WORKDIR /app
 
 FROM base AS deps
 COPY package.json package-lock.json turbo.json ./
-COPY apps/http-backend/package.json apps/http-backend/package.json
+# COPY apps/http-backend/package.json apps/http-backend/package.json
 COPY apps/ws-backend/package.json apps/ws-backend/package.json
 COPY packages/backend-common/package.json packages/backend-common/package.json
 COPY packages/db/package.json packages/db/package.json
@@ -15,7 +15,7 @@ RUN npm ci
 
 FROM base AS prod-deps
 COPY package.json package-lock.json turbo.json ./
-COPY apps/http-backend/package.json apps/http-backend/package.json
+# COPY apps/http-backend/package.json apps/http-backend/package.json
 COPY apps/ws-backend/package.json apps/ws-backend/package.json
 COPY packages/backend-common/package.json packages/backend-common/package.json
 COPY packages/db/package.json packages/db/package.json

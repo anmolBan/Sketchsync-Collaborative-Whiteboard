@@ -8,7 +8,7 @@ COPY package.json package-lock.json turbo.json ./
 COPY apps/http-backend/package.json apps/http-backend/package.json
 # COPY apps/web/package.json apps/web/package.json
 # COPY apps/white-board/package.json apps/white-board/package.json
-COPY apps/ws-backend/package.json apps/ws-backend/package.json
+# COPY apps/ws-backend/package.json apps/ws-backend/package.json
 COPY packages/backend-common/package.json packages/backend-common/package.json
 COPY packages/db/package.json packages/db/package.json
 # COPY packages/eslint-config/package.json packages/eslint-config/package.json
@@ -22,7 +22,7 @@ COPY package.json package-lock.json turbo.json ./
 COPY apps/http-backend/package.json apps/http-backend/package.json
 # COPY apps/web/package.json apps/web/package.json
 # COPY apps/white-board/package.json apps/white-board/package.json
-COPY apps/ws-backend/package.json apps/ws-backend/package.json
+# COPY apps/ws-backend/package.json apps/ws-backend/package.json
 COPY packages/backend-common/package.json packages/backend-common/package.json
 COPY packages/db/package.json packages/db/package.json
 # COPY packages/eslint-config/package.json packages/eslint-config/package.json
