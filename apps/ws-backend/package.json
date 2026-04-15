@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@repo/backend_common": "*",
-    "@repo/db": "*"
+    "@repo/db": "*",
+    "@types/jsonwebtoken": "^9.0.10"
   }
 }
