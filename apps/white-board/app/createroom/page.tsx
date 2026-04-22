@@ -72,8 +72,6 @@ export default function CreateRoom() {
       } else {
         setError("Failed to create room. Please try again.");
       }
-    } finally {
-      // setLoading(false);
     }
   };
 
@@ -109,8 +107,6 @@ export default function CreateRoom() {
       } else {
         setError("Failed to join room. Please try again.");
       }
-    } finally {
-      // setLoading(false);
     }
   };
 
