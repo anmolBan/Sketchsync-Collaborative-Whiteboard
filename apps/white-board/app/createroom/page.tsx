@@ -73,7 +73,7 @@ export default function CreateRoom() {
         setError("Failed to create room. Please try again.");
       }
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
