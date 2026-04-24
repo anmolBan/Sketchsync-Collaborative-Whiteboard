@@ -134,6 +134,7 @@ export const authOptions: NextAuthOptions = {
           const token = jwt.sign({ userId: dbUser.id, email: user.email, name: user.name }, process.env.JWT_SECRET || "", { expiresIn: "7d" });
 
           user.accessToken = token;
+          user.id = dbUser.id; // Ensure the user object has the correct ID from the database
           return true;
         } catch (err) {
           console.error("[NextAuth] Google signIn failed:", (err as Error).message);
