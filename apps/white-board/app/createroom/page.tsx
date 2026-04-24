@@ -6,7 +6,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function CreateRoom() {
-  const session = useSession();
+  const session = useSession({
+    required: true,
+    onUnauthenticated() {
+      router.push("/signin");
+    }
+  });
   const router = useRouter();
   const [createRoomName, setCreateRoomName] = useState("");
   const [joinRoomName, setJoinRoomName] = useState("");
@@ -17,9 +22,6 @@ export default function CreateRoom() {
   useEffect(() => {
     if(session.status === "loading"){
       return;
-    }
-    if(session.status === "unauthenticated" || !session.data?.accessToken || session.data.expires < new Date().toISOString()){
-      router.push("/signin");
     }
   }, [session, router]);
 
