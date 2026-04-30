@@ -23,9 +23,10 @@ RUN npm ci --omit=dev
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN npm ci
 RUN npm run build --workspace=@repo/types
-RUN npm run generate --workspace=@repo/db
 RUN npm run build --workspace=@repo/db
+
 RUN npm run build --workspace=white-board
 
 FROM base AS runner

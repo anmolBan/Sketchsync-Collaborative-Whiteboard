@@ -17,7 +17,8 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
-    "@types/pg": "^8.18.0"
+    "@types/pg": "^8.18.0",
+    "@types/node": "^20.0.0"
   },
   "keywords": [],
   "author": "",
