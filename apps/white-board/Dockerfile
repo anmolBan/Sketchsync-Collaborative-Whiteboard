@@ -27,6 +27,12 @@ RUN npm ci
 RUN npm run build --workspace=@repo/types
 RUN npm run build --workspace=@repo/db
 
+# [ADD THESE] Declare build args and set as ENV before building Next.js
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_WS_URL
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
+
 RUN npm run build --workspace=white-board
 
 FROM base AS runner

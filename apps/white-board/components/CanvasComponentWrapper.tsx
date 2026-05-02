@@ -6,7 +6,7 @@ import axios from "axios";
 
 async function fetchCanvasData(roomId: string, token: string): Promise<any>{
     try{
-        const response = await axios.get(`${process.env.BACKEND_URL}/api/users/canvasData/${roomId}`, {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/canvasData/${roomId}`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }

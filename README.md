@@ -142,10 +142,13 @@ Example:
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/whiteboard"
 
 JWT_SECRET="replace-this-with-a-strong-secret"
+NEXTAUTH_SECRET="replace-this-with-a-strong-secret"
 
+WHITEBOARD_PORT=3001
 HTTP_PORT=3002
 WS_PORT=8080
 
+NEXTAUTH_URL="http://localhost:3001"
 BACKEND_URL="http://localhost:3002"
 WS_URL="ws://localhost:8080"
 
@@ -167,8 +170,11 @@ REDIS_TLS=false
 | --- | --- | --- |
 | `DATABASE_URL` | Prisma, Next.js auth, worker | PostgreSQL connection string |
 | `JWT_SECRET` | NextAuth, HTTP backend, WS backend | Signs and verifies access tokens |
+| `NEXTAUTH_SECRET` | NextAuth | Secret used by NextAuth session/token encryption |
+| `WHITEBOARD_PORT` | Next.js frontend | Port used by the `white-board` app in Docker |
 | `HTTP_PORT` | HTTP backend | Express API port |
 | `WS_PORT` | WS backend | WebSocket server port |
+| `NEXTAUTH_URL` | NextAuth | Public base URL of the frontend app |
 | `BACKEND_URL` | Next.js server-side code | Internal server-side requests to the Express API |
 | `WS_URL` | Shared backend config | Base WebSocket URL for backend/runtime defaults |
 | `NEXT_PUBLIC_BACKEND_URL` | Browser frontend | Public HTTP API base URL |
@@ -190,19 +196,67 @@ REDIS_TLS=false
 - PostgreSQL
 - Redis or Upstash Redis
 
-### 1. Install Dependencies
+### Option A: Run With Docker Compose
+
+`docker-compose.yml` starts the three application services:
+
+- `whiteboard` on port `3001`
+- `http-backend` on port `3002`
+- `ws-backend` on port `8080`
+
+It does not provision PostgreSQL or Redis. Point `DATABASE_URL` and Redis settings at an existing database and Redis instance before starting the stack.
+
+If PostgreSQL or Redis are running on your host machine instead of in containers, do not leave them as `localhost` in `.env`. From inside Docker containers, use `host.docker.internal` instead.
+
+Example Docker-oriented values:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@host.docker.internal:5432/whiteboard"
+REDIS_HOST="host.docker.internal"
+NEXTAUTH_URL="http://localhost:3001"
+NEXT_PUBLIC_BACKEND_URL="http://localhost:3002"
+NEXT_PUBLIC_WS_URL="ws://localhost:8080"
+```
+
+Start the stack:
+
+```bash
+docker compose up --build
+```
+
+Run it in the background instead:
+
+```bash
+docker compose up -d --build
+```
+
+Stop it later with:
+
+```bash
+docker compose down
+```
+
+Default URLs with Docker Compose:
+
+- Frontend: `http://localhost:3001`
+- HTTP API: `http://localhost:3002`
+- WebSocket server: `ws://localhost:8080`
+
+### Option B: Run Locally Without Docker
+
+#### 1. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Generate Prisma Client
+#### 2. Generate Prisma Client
 
 ```bash
 npm run generate --workspace=@repo/db
 ```
 
-### 3. Apply Database Migrations
+#### 3. Apply Database Migrations
 
 With Prisma 7 in this repo, migrations can be applied using the package config:
 
@@ -216,7 +270,7 @@ For local development, if you prefer creating/applying dev migrations instead:
 npx prisma migrate dev --config packages/db/prisma.config.ts
 ```
 
-### 4. Start The Services
+#### 4. Start The Services
 
 You can run the core services in separate terminals:
 
@@ -321,10 +375,14 @@ The WebSocket server authenticates the connection through the `token` query para
 ## Docker And Deployment Notes
 
 - `vercel.json` is configured to build the `white-board` app specifically.
-- `docker-compose.yml` currently defines the `http-backend` service.
-- Dedicated Dockerfiles exist for:
+- `docker-compose.yml` defines three services: `whiteboard`, `http-backend`, and `ws-backend`.
+- The compose stack uses the Dockerfiles in:
+  - `apps/white-board`
   - `apps/http-backend`
   - `apps/ws-backend`
+- The compose stack does not currently include PostgreSQL or Redis containers.
+- Browser-facing URLs in Docker should stay on `localhost`, while container-to-host dependencies such as a host PostgreSQL or Redis instance should use `host.docker.internal`.
+- The `whiteboard` image bakes `NEXT_PUBLIC_BACKEND_URL` and `NEXT_PUBLIC_WS_URL` at build time, so rebuild the image if those public endpoints change.
 
 If you deploy the system fully, you will typically host:
 

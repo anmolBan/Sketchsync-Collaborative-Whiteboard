@@ -7,8 +7,72 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "3002:3002"
+    # [ADDED] Restart policy for production resilience
+    restart: unless-stopped
     environment:
       NODE_ENV: production
-      HTTP_PORT: ${HTTP_PORT:-3002}
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@host.docker.internal:5432/whiteboard}
+      HTTP_PORT: ${HTTP_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+ 
+  ws-backend:
+    build:
+      context: .
+      dockerfile: apps/ws-backend/Dockerfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8080:8080"
+    # [ADDED] Restart policy for production resilience
+    restart: unless-stopped
+    # [ADDED] Wait for http-backend to start before ws-backend
+    depends_on:
+      - http-backend
+    environment:
+      NODE_ENV: production
+      WS_PORT: ${WS_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_TLS: ${REDIS_TLS}
+      HTTP_BACKEND_URL: http://host.docker.internal:3002
+      HTTP_PORT: ${HTTP_PORT}
+ 
+  whiteboard:
+    build:
+      context: .
+      dockerfile: apps/white-board/Dockerfile
+      # [ADDED] Pass NEXT_PUBLIC_* vars as build args so Next.js can bake
+      # them into the client bundle at build time (runtime env is too late)
+      args:
+        - NEXT_PUBLIC_BACKEND_URL=http://localhost:3002
+        - NEXT_PUBLIC_WS_URL=ws://localhost:8080
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "3001:3001"
+    # [ADDED] Restart policy for production resilience
+    restart: unless-stopped
+    # [ADDED] Wait for both backends to start before whiteboard
+    depends_on:
+      - http-backend
+      - ws-backend
+    environment:
+      NODE_ENV: production
+      PORT: ${WHITEBOARD_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+      BACKEND_URL: http://host.docker.internal:3002
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:3002
+      # [FIXED] Changed http:// to ws:// — WebSocket URLs must use the ws:// protocol
+      WS_URL: ws://host.docker.internal:8080
+      # [FIXED] Changed http:// to ws:// — WebSocket URLs must use the ws:// protocol
+      NEXT_PUBLIC_WS_URL: ws://localhost:8080
+      # [FIXED] Changed to point to the Next.js app (port 3001) instead of
+      # the backend (port 3002). NEXTAUTH_URL must be the app's own URL.
+      NEXTAUTH_URL: http://localhost:3001
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
