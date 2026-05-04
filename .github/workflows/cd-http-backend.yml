@@ -41,15 +41,5 @@ jobs:
           ssh -o ProxyCommand="cloudflared access ssh --hostname %h" \
               -o StrictHostKeyChecking=no \
               -i ~/.ssh/id_rsa \
-              ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
-            docker kill http-backend-container || true
-            docker rm http-backend-container || true
-            docker pull anmolban/http-backend:${{ github.sha }}
-            docker run -d \
-              --name http-backend-container \
-              -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
-              -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-              -p ${{ secrets.HTTP_BACKEND_PORT }}:${{ secrets.HTTP_BACKEND_PORT }} \
-              --restart=unless-stopped \
-              anmolban/http-backend:${{ github.sha }}
-          "
+              ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
+              "docker kill http-backend-container || true && docker rm http-backend-container || true && docker pull anmolban/http-backend:${{ github.sha }} && docker run -d --name http-backend-container -e DATABASE_URL=${{ secrets.DATABASE_URL }} -e JWT_SECRET=${{ secrets.JWT_SECRET }} -p ${{ secrets.HTTP_BACKEND_PORT }}:${{ secrets.HTTP_BACKEND_PORT }} --restart=unless-stopped anmolban/http-backend:${{ github.sha }}"
