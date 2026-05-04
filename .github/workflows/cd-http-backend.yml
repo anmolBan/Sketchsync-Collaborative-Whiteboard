@@ -49,4 +49,4 @@ jobs:
               -o StrictHostKeyChecking=no \
               -i ~/.ssh/id_rsa \
               $SSH_USERNAME@$SSH_HOST \
-              "docker kill http-backend-container || true && docker rm http-backend-container || true && docker pull anmolban/http-backend:$SHA && docker run -d --name http-backend-container -e DATABASE_URL=$DATABASE_URL -e JWT_SECRET=$JWT_SECRET -p $PORT:$PORT --restart=unless-stopped anmolban/http-backend:$SHA"
+              "docker kill http-backend-container || true && docker rm http-backend-container || true && docker pull anmolban/http-backend:$SHA && docker run -d --name http-backend-container -e DATABASE_URL=\"$DATABASE_URL\" -e JWT_SECRET=\"$JWT_SECRET\" -p $PORT:$PORT --restart=unless-stopped anmolban/http-backend:$SHA"
